@@ -1,0 +1,75 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../blocs/library/library_cubit.dart';
+import '../../blocs/plugins/plugin_cubit.dart';
+import '../../blocs/settings/settings_cubit.dart';
+
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Settings')),
+      body: ListView(
+        children: [
+          BlocBuilder<SettingsCubit, SettingsState>(
+            builder: (context, state) {
+              return ListTile(
+                title: const Text('Theme'),
+                subtitle: const Text('System / Light / Dark'),
+                trailing: DropdownButton<ThemeMode>(
+                  value: state.themeMode,
+                  onChanged: (mode) {
+                    if (mode != null) context.read<SettingsCubit>().setThemeMode(mode);
+                  },
+                  items: const [
+                    DropdownMenuItem(value: ThemeMode.system, child: Text('System')),
+                    DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
+                    DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+                  ],
+                ),
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('Export library metadata'),
+            subtitle: const Text('Exports tracks/albums/artists JSON to clipboard-ready dialog'),
+            onTap: () {
+              final json = context.read<LibraryCubit>().exportAsJson();
+              showDialog<void>(
+                context: context,
+                builder: (_) => AlertDialog(
+                  title: const Text('Library JSON'),
+                  content: SingleChildScrollView(child: SelectableText(json)),
+                ),
+              );
+            },
+          ),
+          const Divider(),
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('Plugins', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ),
+          BlocBuilder<PluginCubit, PluginState>(
+            builder: (context, state) {
+              return Column(
+                children: state.plugins
+                    .map(
+                      (p) => SwitchListTile(
+                        title: Text(p['name'] as String),
+                        subtitle: Text('Capabilities: ${(p['capabilities'] as List).join(', ')}'),
+                        value: p['enabled'] as bool? ?? false,
+                        onChanged: (v) => context.read<PluginCubit>().toggle(p['id'] as String, v),
+                      ),
+                    )
+                    .toList(),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
