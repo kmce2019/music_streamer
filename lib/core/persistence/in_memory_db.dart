@@ -1,6 +1,7 @@
 import '../models/media_models.dart';
 
 class InMemoryDb {
+
   final List<Track> tracks = [];
   final List<Album> albums = [];
   final List<Artist> artists = [];

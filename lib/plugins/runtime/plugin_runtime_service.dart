@@ -34,6 +34,7 @@ class PluginRuntimeService {
     }
   }
 
+
   // Future Rust helper slot: verify detached signatures using native crypto.
   bool _validateManifest(PluginManifest manifest) {
     final requestsDangerous = manifest.permissions.any(_dangerousPermissions.contains);

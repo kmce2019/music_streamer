@@ -73,11 +73,13 @@ class PlaybackCubit extends Cubit<PlaybackState> {
   }
 
   Future<void> next() async {
+
     await _repository.next();
     emit(state.copyWith(currentIndex: (state.currentIndex + 1).clamp(0, state.queue.length - 1)));
   }
 
   Future<void> previous() async {
+
     await _repository.previous();
     emit(state.copyWith(currentIndex: (state.currentIndex - 1).clamp(0, state.queue.length - 1)));
   }

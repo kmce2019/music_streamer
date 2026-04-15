@@ -1,4 +1,4 @@
-import 'package:audio_service/audio_service.dart';
+
 import 'package:just_audio/just_audio.dart';
 
 import '../../core/events/app_event_bus.dart';
@@ -23,9 +23,6 @@ class AudioPlayerService {
       ..clear()
       ..addAll(tracks);
     _index = startIndex;
-    final sources = tracks.map((t) => AudioSource.uri(Uri.parse(t.source))).toList();
-    await _player.setAudioSource(ConcatenatingAudioSource(children: sources), initialIndex: startIndex);
-  }
 
   Future<void> play() async {
     await _player.play();
