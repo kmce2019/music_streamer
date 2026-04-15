@@ -7,9 +7,6 @@ A legally safer, production-minded, cross-platform music app inspired by modern 
 - Plugin runtime with capability declarations and safety policy checks.
 - Safe bundled plugin: internet radio directory.
 
-## Legal and safety constraints
-This project intentionally avoids scraping, DRM circumvention, ad bypassing, or unauthorized extraction from third-party services.
-
 
 flutter test
 ```
