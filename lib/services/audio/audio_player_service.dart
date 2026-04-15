@@ -1,3 +1,4 @@
+
 import 'package:just_audio/just_audio.dart';
 
 import '../../core/events/app_event_bus.dart';
@@ -22,18 +23,6 @@ class AudioPlayerService {
       ..clear()
       ..addAll(tracks);
     _index = startIndex;
-    final sources = tracks.map((t) => AudioSource.uri(_toPlayableUri(t.source))).toList();
-    await _player.setAudioSource(ConcatenatingAudioSource(children: sources), initialIndex: startIndex);
-  }
-
-  Uri _toPlayableUri(String source) {
-    final parsed = Uri.tryParse(source);
-    if (parsed != null && parsed.hasScheme) {
-      return parsed;
-    }
-    // Local library imports store OS paths; just_audio expects file:// for those.
-    return Uri.file(source);
-  }
 
   Future<void> play() async {
     await _player.play();

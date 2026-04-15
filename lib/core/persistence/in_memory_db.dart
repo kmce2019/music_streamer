@@ -1,8 +1,7 @@
 import '../models/media_models.dart';
 
 class InMemoryDb {
-  // NOTE: MVP adapter only.
-  // Replace this with Isar/Drift-backed DAOs for production persistence.
+
   final List<Track> tracks = [];
   final List<Album> albums = [];
   final List<Artist> artists = [];
