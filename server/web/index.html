@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Music Streamer Web Player</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; background:#111; color:#eee; }
+    header { padding: 16px; border-bottom:1px solid #333; }
+    main { display:grid; grid-template-columns: 320px 1fr; min-height: calc(100vh - 74px); }
+    .sidebar { border-right:1px solid #333; padding:16px; }
+    .content { padding:16px; }
+    input, button { padding:8px; margin:4px 0; width:100%; box-sizing:border-box; }
+    ul { list-style:none; padding:0; margin:0; }
+    li { padding:8px; border-bottom:1px solid #222; cursor:pointer; }
+    li:hover { background:#1b1b1b; }
+    .controls { display:flex; gap:8px; margin-top:12px; }
+    .controls button { width:auto; }
+    small { color:#aaa; }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Music Streamer · Service Web Player</h2>
+    <small>Authorized local files only. Server-side scanner + browser player.</small>
+  </header>
+  <main>
+    <section class="sidebar">
+      <label for="roots">Scan roots (comma separated):</label>
+      <input id="roots" value="/music" />
+      <button id="scanBtn">Scan Library</button>
+      <div id="scanResult"></div>
+      <hr />
+      <h4>Library</h4>
+      <ul id="trackList"></ul>
+    </section>
+    <section class="content">
+      <h3 id="nowPlaying">Nothing selected</h3>
+      <audio id="player" controls style="width:100%"></audio>
+      <div class="controls">
+        <button id="prevBtn">Prev</button>
+        <button id="playBtn">Play/Pause</button>
+        <button id="nextBtn">Next</button>
+      </div>
+      <p><small id="meta"></small></p>
+    </section>
+  </main>
+<script>
+const scanBtn = document.getElementById('scanBtn');
+const rootsInput = document.getElementById('roots');
+const scanResult = document.getElementById('scanResult');
+const trackList = document.getElementById('trackList');
+const player = document.getElementById('player');
+const nowPlaying = document.getElementById('nowPlaying');
+const meta = document.getElementById('meta');
+
+const prevBtn = document.getElementById('prevBtn');
+const playBtn = document.getElementById('playBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+let tracks = [];
+let queue = [];
+let currentIndex = 0;
+
+scanBtn.addEventListener('click', async () => {
+  const roots = rootsInput.value.split(',').map(v => v.trim()).filter(Boolean);
+  const res = await fetch('/api/library/scan', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ roots })
+  });
+  if (!res.ok) {
+    scanResult.textContent = 'Scan failed';
+    return;
+  }
+  const data = await res.json();
+  scanResult.textContent = `Scanned ${data.scanned_files}, imported ${data.imported_tracks}`;
+  await loadTracks();
+});
+
+async function loadTracks() {
+  const res = await fetch('/api/library/tracks');
+  tracks = await res.json();
+  queue = tracks.map(t => t.id);
+  renderTracks();
+}
+
+function renderTracks() {
+  trackList.innerHTML = '';
+  tracks.forEach((track, idx) => {
+    const li = document.createElement('li');
+    li.textContent = `${track.title}`;
+    li.addEventListener('click', () => playAt(idx));
+    trackList.appendChild(li);
+  });
+}
+
+async function pushQueueState() {
+  await fetch('/api/playback/queue', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ track_ids: queue, current_index: currentIndex, shuffle: false, repeat: 'off' })
+  });
+}
+
+async function playAt(index) {
+  if (!tracks.length) return;
+  currentIndex = Math.max(0, Math.min(index, tracks.length - 1));
+  const track = tracks[currentIndex];
+  player.src = `/api/stream/${track.id}`;
+  nowPlaying.textContent = track.title;
+  meta.textContent = `${track.artist_id} · ${track.album_id}`;
+  await pushQueueState();
+  await player.play();
+}
+
+prevBtn.addEventListener('click', () => playAt(currentIndex - 1));
+nextBtn.addEventListener('click', () => playAt(currentIndex + 1));
+playBtn.addEventListener('click', async () => {
+  if (player.paused) await player.play();
+  else player.pause();
+});
+
+player.addEventListener('ended', () => {
+  if (currentIndex + 1 < tracks.length) {
+    playAt(currentIndex + 1);
+  }
+});
+
+loadTracks();
+</script>
+</body>
+</html>
