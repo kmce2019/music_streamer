@@ -25,6 +25,9 @@ class NowPlayingScreen extends StatelessWidget {
                 const Expanded(
                   child: Card(
                     child: Center(child: Icon(Icons.album, size: 96)),
+                    child: Center(
+                      child: Icon(Icons.album, size: 96),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -36,6 +39,11 @@ class NowPlayingScreen extends StatelessWidget {
                   onChanged: (value) => context.read<PlaybackCubit>().seek(Duration(seconds: value.round())),
                 ),
                 Text('${_fmt(state.position)} / ${_fmt(state.duration)}'),
+                  value: state.position.inSeconds.toDouble(),
+                  min: 0,
+                  max: 300,
+                  onChanged: (value) => context.read<PlaybackCubit>().seek(Duration(seconds: value.round())),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -52,6 +60,7 @@ class NowPlayingScreen extends StatelessWidget {
                       onPressed: () => context.read<PlaybackCubit>().cycleRepeatMode(),
                       icon: const Icon(Icons.repeat),
                     ),
+                    IconButton(onPressed: () => context.read<PlaybackCubit>().cycleRepeatMode(), icon: const Icon(Icons.repeat)),
                   ],
                 ),
                 const ListTile(

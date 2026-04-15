@@ -5,6 +5,7 @@ enum PluginCapability {
   lyricsLookup,
   recommendations,
 }
+enum PluginCapability { search, homeSections, resolvePlayableMedia, lyricsLookup, recommendations }
 
 class PluginManifest {
   const PluginManifest({

@@ -19,6 +19,17 @@ class PluginState extends Equatable {
 
   @override
   List<Object?> get props => [plugins, error];
+import '../../plugins/runtime/plugin_runtime_service.dart';
+
+class PluginState extends Equatable {
+  const PluginState({this.plugins = const []});
+
+  final List<Map<String, dynamic>> plugins;
+
+  PluginState copyWith({List<Map<String, dynamic>>? plugins}) => PluginState(plugins: plugins ?? this.plugins);
+
+  @override
+  List<Object?> get props => [plugins];
 }
 
 class PluginCubit extends Cubit<PluginState> {
@@ -38,6 +49,7 @@ class PluginCubit extends Cubit<PluginState> {
       emit(state.copyWith(error: e.toString()));
     }
   }
+  Future<void> loadPlugins() async => emit(state.copyWith(plugins: _runtime.listInstalledPlugins()));
 
   Future<void> toggle(String pluginId, bool enabled) async {
     await _runtime.setEnabled(pluginId, enabled);

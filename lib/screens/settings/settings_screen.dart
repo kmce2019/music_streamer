@@ -88,6 +88,19 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                 ],
+          BlocBuilder<PluginCubit, PluginState>(
+            builder: (context, state) {
+              return Column(
+                children: state.plugins
+                    .map(
+                      (p) => SwitchListTile(
+                        title: Text(p['name'] as String),
+                        subtitle: Text('Capabilities: ${(p['capabilities'] as List).join(', ')}'),
+                        value: p['enabled'] as bool? ?? false,
+                        onChanged: (v) => context.read<PluginCubit>().toggle(p['id'] as String, v),
+                      ),
+                    )
+                    .toList(),
               );
             },
           ),

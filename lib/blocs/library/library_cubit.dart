@@ -13,6 +13,7 @@ class LibraryState extends Equatable {
     this.history = const [],
     this.loading = false,
     this.lastImportMessage,
+
     this.error,
   });
 

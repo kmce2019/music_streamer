@@ -87,11 +87,24 @@ class PlaybackCubit extends Cubit<PlaybackState> {
   Future<void> loadQueue(List<Track> tracks, {int startIndex = 0}) async {
     await _repository.setQueue(tracks, startIndex: startIndex);
     emit(state.copyWith(queue: tracks, currentIndex: startIndex, position: Duration.zero));
+  List<Object?> get props => [queue, currentIndex, isPlaying, position, shuffle, repeatMode, volume];
+}
+
+class PlaybackCubit extends Cubit<PlaybackState> {
+  PlaybackCubit(this._repository, this._eventBus) : super(const PlaybackState());
+
+  final PlaybackRepository _repository;
+  final AppEventBus _eventBus;
+
+  Future<void> loadQueue(List<Track> tracks, {int startIndex = 0}) async {
+    await _repository.setQueue(tracks, startIndex: startIndex);
+    emit(state.copyWith(queue: tracks, currentIndex: startIndex));
   }
 
   Future<void> play() async {
     await _repository.play();
     _eventBus.publish(PlaybackEvent('play'));
+    emit(state.copyWith(isPlaying: true));
   }
 
   Future<void> pause() async {
@@ -107,10 +120,24 @@ class PlaybackCubit extends Cubit<PlaybackState> {
   Future<void> previous() async {
     if (state.queue.isEmpty) return;
     await _repository.previous();
+    emit(state.copyWith(isPlaying: false));
+  }
+
+  Future<void> next() async {
+
+    await _repository.next();
+    emit(state.copyWith(currentIndex: (state.currentIndex + 1).clamp(0, state.queue.length - 1)));
+  }
+
+  Future<void> previous() async {
+
+    await _repository.previous();
+    emit(state.copyWith(currentIndex: (state.currentIndex - 1).clamp(0, state.queue.length - 1)));
   }
 
   Future<void> seek(Duration position) async {
     await _repository.seek(position);
+    emit(state.copyWith(position: position));
   }
 
   Future<void> toggleShuffle() async {

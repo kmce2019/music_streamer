@@ -51,3 +51,21 @@ MUSIC_STREAMER_PORT=9090 cargo run
 
 ## Legacy Flutter client
 The original Flutter client scaffold is still present in `lib/`, but server mode is now the preferred deployment shape for headless systems.
+A legally safer, production-minded, cross-platform music app inspired by modern local-first players.
+
+
+- Search, favorites, playlists, history, theme settings.
+- Plugin runtime with capability declarations and safety policy checks.
+- Safe bundled plugin: internet radio directory.
+
+
+flutter test
+```
+
+## Project docs
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+- [ROADMAP.md](ROADMAP.md)
+- [TODO.md](TODO.md)
+
+## Rust helper placeholder
+See `rust/` for optional performance/security helper integration points.
