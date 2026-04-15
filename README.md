@@ -11,7 +11,6 @@ A legally safer, production-minded, cross-platform music app inspired by modern 
 This project intentionally avoids scraping, DRM circumvention, ad bypassing, or unauthorized extraction from third-party services.
 
 
-```bash
 flutter test
 ```
 

@@ -52,6 +52,42 @@ class SettingsScreen extends StatelessWidget {
             padding: EdgeInsets.all(16),
             child: Text('Plugins', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                await context.read<PluginCubit>().install(const {
+                  'id': 'safe.external.manifest.demo',
+                  'name': 'Safe Manifest Demo',
+                  'version': '1.0.0',
+                  'capabilities': ['search'],
+                  'permissions': ['network:readonly_api'],
+                  'checksum': 'sha256:demo-safe-manifest',
+                  'enabledByDefault': false,
+                });
+              },
+              icon: const Icon(Icons.extension),
+              label: const Text('Install demo manifest'),
+            ),
+          ),
+          BlocBuilder<PluginCubit, PluginState>(
+            builder: (context, state) {
+              return Column(
+                children: [
+                  if (state.error != null)
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Text(state.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    ),
+                  ...state.plugins.map(
+                    (p) => SwitchListTile(
+                      title: Text(p.manifest.name),
+                      subtitle: Text('Capabilities: ${p.manifest.capabilities.map((c) => c.name).join(', ')}'),
+                      value: p.enabled,
+                      onChanged: (v) => context.read<PluginCubit>().toggle(p.manifest.id, v),
+                    ),
+                  ),
+                ],
           BlocBuilder<PluginCubit, PluginState>(
             builder: (context, state) {
               return Column(

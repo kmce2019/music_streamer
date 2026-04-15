@@ -12,6 +12,7 @@ class LibraryState extends Equatable {
     this.artists = const [],
     this.history = const [],
     this.loading = false,
+
     this.error,
   });
 
@@ -40,7 +41,6 @@ class LibraryState extends Equatable {
       );
 
   @override
-  List<Object?> get props => [tracks, albums, artists, history, loading, error];
 }
 
 class LibraryCubit extends Cubit<LibraryState> {
@@ -66,8 +66,6 @@ class LibraryCubit extends Cubit<LibraryState> {
   Future<void> importFolder() async {
     emit(state.copyWith(loading: true, error: null));
     try {
-      await _repository.importLocalFolder();
-      await loadLibrary();
     } catch (e) {
       _eventBus.publish(ErrorEvent('Failed to import local files: $e'));
       emit(state.copyWith(loading: false, error: e.toString()));

@@ -15,12 +15,16 @@ class NowPlayingScreen extends StatelessWidget {
           final track = state.currentTrack;
           if (track == null) return const Center(child: Text('Nothing playing yet.'));
 
+          final maxSeconds = state.duration.inSeconds <= 0 ? 1 : state.duration.inSeconds;
+          final positionSeconds = state.position.inSeconds.clamp(0, maxSeconds);
+
           return Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
                 const Expanded(
                   child: Card(
+                    child: Center(child: Icon(Icons.album, size: 96)),
                     child: Center(
                       child: Icon(Icons.album, size: 96),
                     ),
@@ -29,6 +33,12 @@ class NowPlayingScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(track.title, style: Theme.of(context).textTheme.headlineSmall),
                 Slider(
+                  value: positionSeconds.toDouble(),
+                  min: 0,
+                  max: maxSeconds.toDouble(),
+                  onChanged: (value) => context.read<PlaybackCubit>().seek(Duration(seconds: value.round())),
+                ),
+                Text('${_fmt(state.position)} / ${_fmt(state.duration)}'),
                   value: state.position.inSeconds.toDouble(),
                   min: 0,
                   max: 300,
@@ -46,6 +56,10 @@ class NowPlayingScreen extends StatelessWidget {
                     ),
                     IconButton(onPressed: () => context.read<PlaybackCubit>().next(), icon: const Icon(Icons.skip_next)),
                     IconButton(onPressed: () => context.read<PlaybackCubit>().toggleShuffle(), icon: const Icon(Icons.shuffle)),
+                    IconButton(
+                      onPressed: () => context.read<PlaybackCubit>().cycleRepeatMode(),
+                      icon: const Icon(Icons.repeat),
+                    ),
                     IconButton(onPressed: () => context.read<PlaybackCubit>().cycleRepeatMode(), icon: const Icon(Icons.repeat)),
                   ],
                 ),
@@ -59,5 +73,11 @@ class NowPlayingScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  String _fmt(Duration d) {
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$m:$s';
   }
 }

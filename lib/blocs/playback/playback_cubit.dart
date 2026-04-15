@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -11,6 +13,7 @@ class PlaybackState extends Equatable {
     this.currentIndex = 0,
     this.isPlaying = false,
     this.position = Duration.zero,
+    this.duration = Duration.zero,
     this.shuffle = false,
     this.repeatMode = RepeatMode.off,
     this.volume = 1,
@@ -20,6 +23,7 @@ class PlaybackState extends Equatable {
   final int currentIndex;
   final bool isPlaying;
   final Duration position;
+  final Duration duration;
   final bool shuffle;
   final RepeatMode repeatMode;
   final double volume;
@@ -31,6 +35,7 @@ class PlaybackState extends Equatable {
     int? currentIndex,
     bool? isPlaying,
     Duration? position,
+    Duration? duration,
     bool? shuffle,
     RepeatMode? repeatMode,
     double? volume,
@@ -40,12 +45,48 @@ class PlaybackState extends Equatable {
         currentIndex: currentIndex ?? this.currentIndex,
         isPlaying: isPlaying ?? this.isPlaying,
         position: position ?? this.position,
+        duration: duration ?? this.duration,
         shuffle: shuffle ?? this.shuffle,
         repeatMode: repeatMode ?? this.repeatMode,
         volume: volume ?? this.volume,
       );
 
   @override
+  List<Object?> get props => [queue, currentIndex, isPlaying, position, duration, shuffle, repeatMode, volume];
+}
+
+class PlaybackCubit extends Cubit<PlaybackState> {
+  PlaybackCubit(this._repository, this._eventBus) : super(const PlaybackState()) {
+    _subscriptions.add(
+      _repository.playerStateStream.listen((playerState) {
+        emit(state.copyWith(isPlaying: playerState.playing));
+      }),
+    );
+    _subscriptions.add(
+      _repository.positionStream.listen((position) {
+        emit(state.copyWith(position: position));
+      }),
+    );
+    _subscriptions.add(
+      _repository.durationStream.listen((duration) {
+        emit(state.copyWith(duration: duration ?? Duration.zero));
+      }),
+    );
+    _subscriptions.add(
+      _repository.currentIndexStream.listen((index) {
+        if (index == null) return;
+        emit(state.copyWith(currentIndex: index));
+      }),
+    );
+  }
+
+  final PlaybackRepository _repository;
+  final AppEventBus _eventBus;
+  final List<StreamSubscription<dynamic>> _subscriptions = [];
+
+  Future<void> loadQueue(List<Track> tracks, {int startIndex = 0}) async {
+    await _repository.setQueue(tracks, startIndex: startIndex);
+    emit(state.copyWith(queue: tracks, currentIndex: startIndex, position: Duration.zero));
   List<Object?> get props => [queue, currentIndex, isPlaying, position, shuffle, repeatMode, volume];
 }
 
@@ -69,6 +110,16 @@ class PlaybackCubit extends Cubit<PlaybackState> {
   Future<void> pause() async {
     await _repository.pause();
     _eventBus.publish(PlaybackEvent('pause'));
+  }
+
+  Future<void> next() async {
+    if (state.queue.isEmpty) return;
+    await _repository.next();
+  }
+
+  Future<void> previous() async {
+    if (state.queue.isEmpty) return;
+    await _repository.previous();
     emit(state.copyWith(isPlaying: false));
   }
 
@@ -108,5 +159,14 @@ class PlaybackCubit extends Cubit<PlaybackState> {
   Future<void> setVolume(double volume) async {
     await _repository.setVolume(volume);
     emit(state.copyWith(volume: volume));
+  }
+
+  @override
+  Future<void> close() async {
+    for (final sub in _subscriptions) {
+      await sub.cancel();
+    }
+    await _repository.dispose();
+    return super.close();
   }
 }
