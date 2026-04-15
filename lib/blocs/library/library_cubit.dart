@@ -12,7 +12,7 @@ class LibraryState extends Equatable {
     this.artists = const [],
     this.history = const [],
     this.loading = false,
-    this.lastImportMessage,
+
     this.error,
   });
 
@@ -21,7 +21,6 @@ class LibraryState extends Equatable {
   final List<Artist> artists;
   final List<RecentHistoryItem> history;
   final bool loading;
-  final String? lastImportMessage;
   final String? error;
 
   LibraryState copyWith({
@@ -30,7 +29,6 @@ class LibraryState extends Equatable {
     List<Artist>? artists,
     List<RecentHistoryItem>? history,
     bool? loading,
-    String? lastImportMessage,
     String? error,
   }) =>
       LibraryState(
@@ -39,12 +37,10 @@ class LibraryState extends Equatable {
         artists: artists ?? this.artists,
         history: history ?? this.history,
         loading: loading ?? this.loading,
-        lastImportMessage: lastImportMessage ?? this.lastImportMessage,
         error: error,
       );
 
   @override
-  List<Object?> get props => [tracks, albums, artists, history, loading, lastImportMessage, error];
 }
 
 class LibraryCubit extends Cubit<LibraryState> {
@@ -70,14 +66,6 @@ class LibraryCubit extends Cubit<LibraryState> {
   Future<void> importFolder() async {
     emit(state.copyWith(loading: true, error: null));
     try {
-      final summary = await _repository.importLocalFolder();
-      await loadLibrary();
-      emit(
-        state.copyWith(
-          lastImportMessage:
-              'Scanned ${summary.filesScanned}, imported ${summary.tracksImported} tracks (${summary.artistsCreated} artists, ${summary.albumsCreated} albums).',
-        ),
-      );
     } catch (e) {
       _eventBus.publish(ErrorEvent('Failed to import local files: $e'));
       emit(state.copyWith(loading: false, error: e.toString()));

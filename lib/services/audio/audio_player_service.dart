@@ -1,3 +1,4 @@
+
 import 'package:just_audio/just_audio.dart';
 
 import '../../core/events/app_event_bus.dart';
@@ -32,6 +33,9 @@ class AudioPlayerService {
 
   List<Track> get queue => List.unmodifiable(_queue);
   int get currentIndexValue => _index;
+
+  List<Track> get queue => List.unmodifiable(_queue);
+  int get currentIndex => _index;
 
   Future<void> setQueue(List<Track> tracks, {int startIndex = 0}) async {
     _queue
@@ -72,6 +76,8 @@ class AudioPlayerService {
     _index = _player.currentIndex ?? _index;
   }
 
+  Future<void> next() => _player.seekToNext();
+  Future<void> previous() => _player.seekToPrevious();
   Future<void> setShuffle(bool enabled) => _player.setShuffleModeEnabled(enabled);
 
   Future<void> setRepeat(RepeatMode mode) => _player.setLoopMode(

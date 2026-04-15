@@ -32,6 +32,9 @@ class LibraryRepository {
     if (path == null) {
       return const ImportSummary(filesScanned: 0, tracksImported: 0, albumsCreated: 0, artistsCreated: 0);
     }
+  Future<int> importLocalFolder() async {
+    final path = await FilePicker.platform.getDirectoryPath(dialogTitle: 'Choose music folder');
+    if (path == null) return 0;
     return _importer.importFromFolder(path);
   }
 
